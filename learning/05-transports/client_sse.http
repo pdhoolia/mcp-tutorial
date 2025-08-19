@@ -1,0 +1,143 @@
+# Start the server
+# uv run python learning/05-transports/server.py sse
+#
+# Create & get the session_id
+# curl -N -H "Accept: text/event-stream" "http://localhost:8000/sse"
+
+@server_url=http://localhost:8000
+@session_id=9da1a8fff9ab49c3b817b955ab9106d1
+@city=London
+@city2=Paris
+
+### Create & get the session_id
+# REST Client CANNOT handle SSE streams - use one of these methods:
+#
+# Method 1: Run in terminal to get session_id
+# curl -N -H "Accept: text/event-stream" "http://localhost:8000/sse"
+#
+# Method 2: Use the Python client
+# uv run python learning/05-transports/client_sse.py
+#
+# Then copy the session_id and update line 8 above
+
+### Initialize the connection
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+        "protocolVersion": "0.1.0",
+        "capabilities": {},
+        "clientInfo": {
+            "name": "vs-code-rest-client",
+            "version": "0.25.1"
+        }
+    },
+    "id": 1
+}
+
+### Send initialized notification (required after initialize)
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/initialized"
+}
+
+### List available tools
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/list",
+    "params": {},
+    "id": 2
+}
+
+### Call a tool
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "get_weather",
+        "arguments": {"city": "{{city}}"}
+    },
+    "id": 3
+}
+
+### Call a tool
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "compare_weather",
+        "arguments": {"cities": ["{{city}}", "{{city2}}"]}
+    },
+    "id": 4
+}
+
+### List resources
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "resources/list",
+    "params": {},
+    "id": 5
+}
+
+### Read a resource
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "resources/read",
+    "params": {
+        "uri": "weather://{{city}}"
+    },
+    "id": 6
+}
+
+### List prompts
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "prompts/list",
+    "params": {},
+    "id": 7
+}
+
+### Get a prompt
+POST {{server_url}}/messages?session_id={{session_id}}
+Content-Type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "prompts/get",
+    "params": {
+        "name": "weather_report",
+        "arguments": {"cities": "{{city}},{{city2}}"}
+    },
+    "id": 8
+}
+
+### Terminate session (optional)
+# SSE transport doesn't support DELETE for session termination
+# To close the session: Go to the terminal where you ran the curl command and press Ctrl+C
+# The session ends when the SSE connection is closed
+# For streamable-http transport, use: DELETE {{server_url}}/mcp with MCP-Session-Id header

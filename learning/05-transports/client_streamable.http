@@ -1,0 +1,171 @@
+# Streamable-HTTP Client for MCP Server
+# Start the server: uv run python learning/05-transports/server.py streamable-http
+#
+# Streamable-HTTP transport uses a single endpoint for all operations
+# Session management is done via headers, not query parameters
+
+@server_url=http://localhost:8000
+@city=London
+@city2=Paris
+
+### Initialize the connection (creates a new session)
+# The server will return a session ID in the MCP-Session-Id header
+# @name initialize
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+        "protocolVersion": "0.1.0",
+        "capabilities": {},
+        "clientInfo": {
+            "name": "vs-code-rest-client",
+            "version": "0.25.1"
+        }
+    },
+    "id": 1
+}
+
+### Retrieve session_id from the header
+@session_id = {{initialize.response.headers.MCP-Session-Id}}
+
+### Send initialized notification (required after initialize)
+# Session ID is automatically captured from the initialize response
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/initialized"
+}
+
+### List available tools
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/list",
+    "params": {},
+    "id": 2
+}
+
+### Call get_weather tool
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "get_weather",
+        "arguments": {"city": "{{city}}"}
+    },
+    "id": 3
+}
+
+### Call compare_weather tool
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "compare_weather",
+        "arguments": {"cities": ["{{city}}", "{{city2}}"]}
+    },
+    "id": 4
+}
+
+### List resources
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "resources/list",
+    "params": {},
+    "id": 5
+}
+
+### Read a resource
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "resources/read",
+    "params": {
+        "uri": "weather://{{city}}"
+    },
+    "id": 6
+}
+
+### List prompts
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "prompts/list",
+    "params": {},
+    "id": 7
+}
+
+### Get a prompt
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "prompts/get",
+    "params": {
+        "name": "weather_report",
+        "arguments": {"cities": "{{city}},{{city2}}"}
+    },
+    "id": 8
+}
+
+### Get forecast (additional tool example)
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "get_forecast",
+        "arguments": {
+            "city": "{{city}}",
+            "days": 3
+        }
+    },
+    "id": 9
+}
+
+### Terminate session (optional)
+# DELETE request terminates the session
+DELETE {{server_url}}/mcp
+MCP-Session-Id: {{session_id}}

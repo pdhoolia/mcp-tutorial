@@ -1,0 +1,98 @@
+[project]
+name = "mcp-tutorial"
+version = "0.1.0"
+description = "Model Context Protocol (MCP) Tutorial"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Pankaj Dhoolia" }]
+keywords = ["mcp", "llm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "mcp[cli]",
+    "python-dotenv>=1.1.1",
+]
+
+[project.optional-dependencies]
+rich = ["rich>=13.9.4"]
+cli = ["typer>=0.16.0", "python-dotenv>=1.0.0"]
+ws = ["websockets>=15.0.1"]
+
+[tool.uv]
+default-groups = ["dev"]
+required-version = ">=0.7.2"
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.400",
+    "pytest>=8.3.4",
+    "ruff>=0.8.5",
+    "trio>=0.26.2",
+    "pytest-flakefinder>=1.1.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-examples>=0.0.14",
+    "pytest-pretty>=1.2.0",
+    "inline-snapshot>=0.23.0",
+    "dirty-equals>=0.9.0",
+]
+
+[project.urls]
+Homepage = "https://modelcontextprotocol.io"
+Repository = "https://github.com/modelcontextprotocol/python-sdk"
+Issues = "https://github.com/modelcontextprotocol/python-sdk/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["learning"]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+include = ["learning"]
+venvPath = "."
+venv = ".venv"
+executionEnvironments = [
+  { root = "learning", reportUnusedFunction = false },
+]
+
+[tool.ruff.lint]
+select = ["C4", "E", "F", "I", "PERF", "UP"]
+ignore = ["PERF203"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["README.md"]
+
+[tool.pytest.ini_options]
+log_cli = true
+xfail_strict = true
+addopts = """
+    --color=yes
+    --capture=fd
+    --numprocesses auto
+"""
+filterwarnings = [
+    "error",
+    # This should be fixed on Uvicorn's side.
+    "ignore::DeprecationWarning:websockets",
+    "ignore:websockets.server.WebSocketServerProtocol is deprecated:DeprecationWarning",
+    "ignore:Returning str or bytes.*:DeprecationWarning:mcp.server.lowlevel",
+    # pywin32 internal deprecation warning
+    "ignore:getargs.*The 'u' format is deprecated:DeprecationWarning"
+]
+
+[tool.markdown.lint]
+default=true
+MD004=false  # ul-style - Unordered list style
+MD007.indent=2  # ul-indent - Unordered list indentation
+MD013=false  # line-length - Line length
+MD029=false  # ol-prefix - Ordered list item prefix
+MD033=false  # no-inline-html Inline HTML
+MD041=false  # first-line-heading/first-line-h1
+MD059=false  # descriptive-link-text
