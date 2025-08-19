@@ -6,7 +6,7 @@ This learning series uses **hands-on examples** adapted from the `python-sdk` re
 
 ```bash
 # Clone the repository
-git clone https://github.ibm.com/pdhoolia/mcp-tutorial.git
+git clone https://github.com/pdhoolia/mcp-tutorial.git
 cd mcp-tutorial
 
 # Create virtual environment using uv
