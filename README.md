@@ -261,9 +261,93 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD="" uv run --frozen pytest learning/07-pytest/test
 # - uv run --frozen - Executes the command using uv (a fast Python package manager) with --frozen flag, which uses exact dependency versions from the lockfile without updating them
 ```
 
+## Module 8: Real-World Integrations
+
+### Learning Objective
+- Build a capstone MCP Server
+- Integrate it into Generalist Assistants
+- Integrate it into IDEs
+- Patterns of integration into Agentic Frameworks like LangGraph
+
+### Understand Capstone Project: Task Management System
+
+- Understand the tools in [Task Management MCP Server](learning/08-integrations/server.py)
+- Run the server:
+    ```bash
+    uv run python learning/08-integrations/server.py streamable-http
+    ```
+- Understand the [Python Client](learning/08-integrations/client.py) that will seed some tasks using the `create_task` tool
+- Run the client:
+    ```bash
+    uv run python learning/08-integrations/client.py
+    ```
+- Try using the mcp inspector
+    ```bash
+    uv run mcp dev learning/08-integrations/server.py
+    ```
+    - list and then try the resource: `get_task_summary`
+    - list and then try the `create_task` tool (give the new task some unique tag like `demo`)
+    - note the `task_id` generated for the new task
+    - try the `update_task_status` tool to update status to `in_progress`
+    - try the `list_tasks` (filter using the `demo` tag)
+- You may also try using the [REST Client](learning/08-integrations/client.http)
+
+### Integrate into Claude
+
+- Use the mcp cli to add our server to Claude
+    ```bash
+    uv run mcp install learning/08-integrations/server.py
+    ```
+
+- OR Add to `~/Library/Application Support/Claude/claude_desktop_config.json` the following
+    ```json
+    {
+    "mcpServers": {
+        "task-manager": {
+        "command": "uv",
+        "args": ["run", "python", "/Users/pdhoolia/ghe/mcp-tutorial/learning/08-integrations/server.py", "stdio"]
+        }
+    }
+    }
+    ```
+
+### Integrate into VS Code
+
+Let's assume you have access to GitHub-Copilot
+
+- CMD+SHIFT-P > MCP: Add Server
+- Let's pick > Command stdio ...Manual Install
+- In the Command to run (with optional arguments) > `uv run python /Users/pdhoolia/ghe/mcp-tutorial/learning/08-integrations/server.py`
+- Let's name it `task-manager`
+- Open Copilot Chat
+- Click on the `Configure tools` icon and ensure that there is a selected entry for `MCP Servers: task-manager`
+- Give a try to creating, updating, and listing tasks
+
+### Using MCP Servers with LangGraph
+
+Most agent frameworks have out of the box support for using tools from MCP servers.
+Here's an example of a langgraph agent using the [calculator server from module 01-hello-world](learning/01-hello-world/server_with_resources.py), and the [weather server from module 05-transports](learning/05-transports/server.py): [learning/08-integrations/langgraph_agent.py](learning/08-integrations/langgraph_agent.py)
+
+**To run:**
+
+Create a `.env` file with:
+```python
+OPENWEATHER_API_KEY=304bcf44d4823d79049378809f39088d
+OPENAI_API_KEY=<your-openai-api-key>
+```
+
+And then run:
+```bash
+uv run python learning/08-integrations/langgraph_agent.py  
+```
+
+You should see the responses to the 2 questions being asked.
+
+
 ## Additional Resources
 
 ### Documentation
 - [MCP Specification](https://modelcontextprotocol.io/docs)
 - [Python SDK Docs](https://github.com/modelcontextprotocol/python-sdk)
 - [MCP Python SDK Examples](https://github.com/modelcontextprotocol/python-sdk/tree/main/examples)
+- [Using MCP with LangGraph](https://langchain-ai.github.io/langgraph/agents/mcp/)

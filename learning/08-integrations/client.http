@@ -1,0 +1,366 @@
+# Streamable-HTTP Client for Task Manager MCP Server
+# Start the server: uv run python learning/08-capstone/server.py streamable-http
+#
+# This client demonstrates all task management operations via HTTP API
+
+@server_url=http://localhost:8000
+#@server_url=http://localhost:2024
+
+
+### Initialize the connection (creates a new session)
+# The server will return a session ID in the MCP-Session-Id header
+# @name initialize
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+    "jsonrpc": "2.0",
+    "method": "initialize",
+    "params": {
+        "protocolVersion": "0.1.0",
+        "capabilities": {},
+        "clientInfo": {
+            "name": "vs-code-rest-client",
+            "version": "0.25.1"
+        }
+    },
+    "id": 1
+}
+
+### Retrieve session_id from the header
+@session_id = {{initialize.response.headers.MCP-Session-Id}}
+
+### Send initialized notification (required after initialize)
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "notifications/initialized"
+}
+
+### List available tools
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/list",
+    "params": {},
+    "id": 2
+}
+
+### Create a new task
+# @name create_task
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "create_task",
+        "arguments": {
+            "title": "Demo your MCP learning",
+            "description": "Demonstrate the MCP capabilities you learnt",
+            "priority": 5,
+            "tags": ["demo", "mcp", "learning"]
+        }
+    },
+    "id": 3
+}
+
+### Extract task_id from the create_task response
+# Assuming the response contains the task ID in the format: {"id": "task_XX", ...}
+# You'll need to manually copy the task_id from the response for the next requests
+@task_id = task_27
+
+### Update task status to in_progress
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "update_task_status",
+        "arguments": {
+            "task_id": "{{task_id}}",
+            "status": "in_progress"
+        }
+    },
+    "id": 4
+}
+
+### List all tasks
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "list_tasks",
+        "arguments": {}
+    },
+    "id": 5
+}
+
+### List tasks by status (pending)
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "list_tasks",
+        "arguments": {
+            "status": "pending"
+        }
+    },
+    "id": 6
+}
+
+### List tasks by status (in_progress)
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "list_tasks",
+        "arguments": {
+            "status": "in_progress"
+        }
+    },
+    "id": 7
+}
+
+### List tasks by status (completed)
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "list_tasks",
+        "arguments": {
+            "status": "completed"
+        }
+    },
+    "id": 8
+}
+
+### List tasks by tag
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "list_tasks",
+        "arguments": {
+            "tag": "demo"
+        }
+    },
+    "id": 9
+}
+
+### Get task statistics
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "get_task_stats",
+        "arguments": {}
+    },
+    "id": 10
+}
+
+### List resources
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "resources/list",
+    "params": {},
+    "id": 11
+}
+
+### Read tasks://all resource (export all tasks as JSON)
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "resources/read",
+    "params": {
+        "uri": "tasks://all"
+    },
+    "id": 12
+}
+
+### Read tasks://summary resource
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "resources/read",
+    "params": {
+        "uri": "tasks://summary"
+    },
+    "id": 13
+}
+
+### List prompts
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "prompts/list",
+    "params": {},
+    "id": 14
+}
+
+### Get Daily Standup prompt
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "prompts/get",
+    "params": {
+        "name": "daily-standup",
+        "arguments": {}
+    },
+    "id": 15
+}
+
+### Update task status to completed
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "update_task_status",
+        "arguments": {
+            "task_id": "{{task_id}}",
+            "status": "completed"
+        }
+    },
+    "id": 16
+}
+
+### Create multiple tasks for testing
+# Module 1 task
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "create_task",
+        "arguments": {
+            "title": "Complete Module 1: Hello World",
+            "description": "Build and test first MCP server",
+            "priority": 5,
+            "tags": ["module-1", "learning"]
+        }
+    },
+    "id": 17
+}
+
+### Module 2 task
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "create_task",
+        "arguments": {
+            "title": "Complete Module 2: Client-Server Communication",
+            "description": "Build MCP clients and handle tool calls",
+            "priority": 5,
+            "tags": ["module-2", "learning"]
+        }
+    },
+    "id": 18
+}
+
+### High priority task
+POST {{server_url}}/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: {{session_id}}
+
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "create_task",
+        "arguments": {
+            "title": "Fix critical bug in production",
+            "description": "Address memory leak in task processing",
+            "priority": 5,
+            "tags": ["bug", "critical", "production"]
+        }
+    },
+    "id": 19
+}
+
+### Terminate session (optional)
+# DELETE request terminates the session
+DELETE {{server_url}}/mcp
+MCP-Session-Id: {{session_id}}
